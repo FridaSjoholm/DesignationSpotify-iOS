@@ -31,6 +31,15 @@
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
     //[self configureView];
+    [self addObserver:self forKeyPath:@"trackPlayer.indexOfCurrentTrack" options:0 context:nil];
+}
+
+-(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
+    if ([keyPath isEqualToString:@"trackPlayer.indexOfCurrentTrack"]) {
+        [self updateUI];
+    } else {
+        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
+    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -63,6 +72,24 @@
     self.masterPopoverController = nil;
 }
 
+#pragma mark - Actions
+
+-(IBAction)rewind:(id)sender {
+	[self.trackPlayer skipToPreviousTrack:NO];
+}
+
+-(IBAction)playPause:(id)sender {
+	if (self.trackPlayer.paused) {
+		[self.trackPlayer resumePlayback];
+	} else {
+		[self.trackPlayer pausePlayback];
+	}
+}
+
+-(IBAction)fastForward:(id)sender {
+	[self.trackPlayer skipToNextTrack];
+}
+
 #pragma mark - Logic
 
 -(void)updateUI {
@@ -74,10 +101,17 @@
         NSLog(@"updateUi nothing found\n");
 	} else {
 		NSInteger index = self.trackPlayer.indexOfCurrentTrack;
-		SPTAlbum *album = (SPTAlbum *)self.trackPlayer.currentProvider;
-		self.titleLabel.text = [album.tracks[index] name];
-		self.albumLabel.text = album.name;
-		self.artistLabel.text = album.artist.name;
+		SPTPlaylistSnapshot *snapshot = (SPTPlaylistSnapshot *)self.trackPlayer.currentProvider;
+        SPTPartialTrack *partialTrack = (SPTPartialTrack *)snapshot.tracks[index];
+		self.titleLabel.text = partialTrack.name;
+		self.albumLabel.text = partialTrack.album.name;
+        //TODO add all artists
+        if (partialTrack.artists.count > 0) {
+            //TODO add all artists
+            self.artistLabel.text = [(SPTPartialArtist *)partialTrack.artists[0] name];
+        } else {
+            self.artistLabel.text = @"";
+        }
 		self.coverView.image = [UIImage imageNamed:@"coverart"];
         NSLog(@"updateUi stuff found\n");
 	}
