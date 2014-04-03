@@ -143,7 +143,10 @@
 									return;
 								}
                                 
-								[self.trackPlayer playTrackProvider:(id <SPTTrackProvider>)object fromIndex:index];
+								[self.trackPlayer playTrackProvider:(id <SPTTrackProvider>)object];
+                                for (int i = 0; i < index; i++) {
+                                    [self.trackPlayer skipToNextTrack];
+                                }
                                 NSLog(@"Track callback recieved\n");
 							}];
 	}];
